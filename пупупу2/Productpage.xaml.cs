@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +22,11 @@ namespace Yakupova_Miracle
     {
         List<Product> CurrentPageList = new List<Product>();
         List<Product> TableList;
-        public Productpage()
+
+        private Client _currentUser;
+        private int UserRoles;
+
+        public Productpage(Client user)
         {
             InitializeComponent();
             var currentProduct = YakupovaMiracleEntities.GetContext().Product.ToList();
@@ -30,6 +34,44 @@ namespace Yakupova_Miracle
             ComboCategory.SelectedIndex = 0;
             ComboFiltr.SelectedIndex = 0;
             ProdutUpdate();
+
+            _currentUser = user;
+            UserRoles = user?.RoleID ?? 0;
+            
+
+            if (user != null)
+            {
+                FIOTB.Text = "Вы авторизованы как " + user.FirstName + " " +
+                    user.LastName + " " + user.Patrynomic;
+                switch (user.RoleID)
+                {
+                    case 1: // Администратор
+                        RoleTB.Text = "Роль: Администратор";
+                        BtnCart.Visibility = Visibility.Visible;
+                        BtnOrders.Visibility = Visibility.Visible;
+                        break;
+                    case 2: // Менеджер
+                        RoleTB.Text = "Роль: Менеджер";
+                       BtnCart.Visibility = Visibility.Visible;
+                        BtnOrders.Visibility = Visibility.Visible;
+                        break;
+                    case 3: // Клиент
+                        RoleTB.Text = "Роль: Авторизованный клиент";
+                        BtnCart.Visibility = Visibility.Visible;
+                        BtnOrders.Visibility = Visibility.Collapsed;
+                        break;
+                }
+            }
+            else
+            {
+                FIOTB.Text = "Вы вошли как гость";
+                RoleTB.Text = "Роль: Гость";
+                BtnCart.Visibility = Visibility.Collapsed;
+                BtnOrders.Visibility = Visibility.Collapsed;
+            }
+
+          
+
         }
 
         private void ProdutUpdate()
@@ -89,6 +131,16 @@ namespace Yakupova_Miracle
         private void ComboFiltr_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ProdutUpdate();
+        }
+
+        private void BtnCart_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new CartPage(_currentUser));
+        }
+
+        private void BtnOrders_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new OrdersPage(_currentUser));
         }
     }
 }
